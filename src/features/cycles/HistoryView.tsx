@@ -20,20 +20,20 @@ export const HistoryView: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         <div className="history-overlay">
             <div className="history-modal">
                 <div className="history-header">
-                    <h2>Past Cycles</h2>
-                    <button onClick={onClose} className="close-btn">Close</button>
+                    <h2>지난 기록</h2>
+                    <button onClick={onClose} className="close-btn">닫기</button>
                 </div>
 
                 <div className="history-list">
                     {loading ? (
-                        <p>Loading...</p>
+                        <p>로딩 중...</p>
                     ) : history.length === 0 ? (
-                        <p className="empty-msg">No past cycles found. Keep going!</p>
+                        <p className="empty-msg">아직 기록이 없습니다. 파이팅!</p>
                     ) : (
                         history.map(cycle => (
                             <Card key={cycle.id} className="history-item">
                                 <div className="history-dates">
-                                    <span className="date-tag">Started: {format(new Date(cycle.start_date), 'MMM d, yyyy')}</span>
+                                    <span className="date-tag">시작일: {format(new Date(cycle.start_date), 'MMM d, yyyy')}</span>
                                     {/* Calculated End date could be added here */}
                                 </div>
                                 <div className="history-goals">

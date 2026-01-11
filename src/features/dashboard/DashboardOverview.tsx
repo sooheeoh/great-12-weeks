@@ -48,9 +48,9 @@ export const DashboardOverview: React.FC = () => {
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
-                <h2>12 Week Overview</h2>
+                <h2>{state.profile?.nickname ? `${state.profile.nickname}님의 위대한 12주` : '위대한 12주'}</h2>
                 <Button variant="secondary" size="sm" onClick={() => setShowHistory(true)}>
-                    Past Cycles
+                    지난 기록
                 </Button>
             </div>
 
@@ -59,7 +59,7 @@ export const DashboardOverview: React.FC = () => {
             {/* Grid and Progress logic */}
             <div className="stats-row">
                 <Card className="stats-card">
-                    <h3>Overall Progress</h3>
+                    <h3>전체 진행률</h3>
                     <div className="big-percent">{overallProgress}%</div>
                     <div className="progress-bar-bg">
                         <div className="progress-bar-fill" style={{ width: `${overallProgress}%` }}></div>
@@ -72,7 +72,7 @@ export const DashboardOverview: React.FC = () => {
                             <div key={w.weekNum}
                                 className={classNames('week-box', w.status, { current: w.isCurrent, past: w.isPast })}
                             >
-                                <span className="week-label">W{w.weekNum}</span>
+                                <span className="week-label">{w.weekNum}주</span>
                             </div>
                         ))}
                     </div>

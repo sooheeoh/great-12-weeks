@@ -62,12 +62,12 @@ export const WeeklyView: React.FC = () => {
             <Card className="weekly-card">
                 <div className="week-header">
                     <div>
-                        <span className="week-label">Week {currentWeek}</span>
+                        <span className="week-label">{currentWeek}주 차</span>
                         <span className="week-dates">
-                            {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d')}
+                            {format(weekStart, 'M월 d일')} - {format(weekEnd, 'M월 d일')}
                         </span>
                     </div>
-                    {isCurrentWeek && <span className="current-badge">Current</span>}
+                    {isCurrentWeek && <span className="current-badge">이번 주</span>}
                 </div>
 
                 <div className="quote-section">
@@ -76,11 +76,11 @@ export const WeeklyView: React.FC = () => {
 
                 <div className="progress-section">
                     <ProgressBar progress={progress} target={85} />
-                    <p className="score-text">Execution Score: {progress}%</p>
+                    <p className="score-text">주간 실행 점수: {progress}%</p>
                 </div>
 
                 <div className="actions-section">
-                    <h3>Weekly Actions</h3>
+                    <h3>이번 주 실천 행동</h3>
 
                     <div className="add-action-form">
                         <select
@@ -88,24 +88,24 @@ export const WeeklyView: React.FC = () => {
                             onChange={(e) => setSelectedGoalId(e.target.value)}
                             className="goal-select"
                         >
-                            <option value="">Select a Goal...</option>
+                            <option value="">목표를 선택하세요...</option>
                             {state.goals.map(g => (
                                 <option key={g.id} value={g.id}>{g.title}</option>
                             ))}
                         </select>
                         <div className="input-group">
                             <Input
-                                placeholder="Action step for this week..."
+                                placeholder="이번 주에 할 일을 입력하세요..."
                                 value={newActionTitle}
                                 onChange={(e) => setNewActionTitle(e.target.value)}
                             />
-                            <Button onClick={handleAddAction} disabled={!selectedGoalId || !newActionTitle}>Add</Button>
+                            <Button onClick={handleAddAction} disabled={!selectedGoalId || !newActionTitle}>추가</Button>
                         </div>
                     </div>
 
                     <div className="actions-list">
                         {weekData.actions.length === 0 ? (
-                            <p className="empty-actions">No actions planned for this week.</p>
+                            <p className="empty-actions">등록된 할 일이 없습니다.</p>
                         ) : (
                             weekData.actions.map(action => (
                                 <div key={action.id} className={classNames('action-item', { completed: action.isCompleted })}>
@@ -127,17 +127,17 @@ export const WeeklyView: React.FC = () => {
                                         <button
                                             className="icon-btn-sm"
                                             onClick={() => {
-                                                const newTitle = window.prompt("Edit Action", action.title);
+                                                const newTitle = window.prompt("할 일 수정:", action.title);
                                                 if (newTitle && newTitle.trim()) updateAction(currentWeek, action.id, newTitle);
                                             }}
-                                            title="Edit"
+                                            title="수정"
                                         >
                                             ✎
                                         </button>
                                         <button
                                             className="icon-btn-sm danger"
                                             onClick={() => deleteAction(currentWeek, action.id)}
-                                            title="Delete"
+                                            title="삭제"
                                         >
                                             ×
                                         </button>

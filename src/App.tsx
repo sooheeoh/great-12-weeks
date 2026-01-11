@@ -29,7 +29,7 @@ const MainContent = () => {
   return (
     <div className="app-container">
       <header style={{ display: 'flex', justifyContent: 'flex-end', padding: '1rem' }}>
-        <Button variant="ghost" onClick={handleLogout} size="sm">Logout</Button>
+        <Button variant="ghost" onClick={handleLogout} size="sm">로그아웃</Button>
       </header>
       <div style={{ padding: '0 2rem 2rem 2rem' }}>
         <DashboardOverview />

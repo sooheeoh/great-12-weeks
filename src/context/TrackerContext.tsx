@@ -18,6 +18,7 @@ interface TrackerContextType {
     deleteAction: (weekNumber: number, actionId: string) => void;
     updateGoal: (goalId: string, title: string, description: string) => void;
     deleteGoal: (goalId: string) => void;
+    updateProfile: (nickname: string) => Promise<void>;
     fetchHistory: () => Promise<any[]>;
     resetData: () => void;
     handleLogout: () => void;
@@ -34,18 +35,18 @@ const INITIAL_STATE: TrackerState = {
 
 // ... QUOTES array ...
 const QUOTES = [
-    "The only way to do great work is to love what you do.",
-    "Believe you can and you're halfway there.",
-    "Your time is limited, don't waste it living someone else's life.",
-    "Don't watch the clock; do what it does. Keep going.",
-    "The future depends on what you do today.",
-    "It does not matter how slowly you go as long as you do not stop.",
-    "Everything you’ve ever wanted is on the other side of fear.",
-    "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-    "Hardships often prepare ordinary people for an extraordinary destiny.",
-    "Dream big and dare to fail.",
-    "What you get by achieving your goals is not as important as what you become by achieving your goals.",
-    "The best way to predict the future is to create it."
+    "위대한 일을 해내는 유일한 방법은 당신이 하는 일을 사랑하는 것입니다.",
+    "할 수 있다고 믿으세요. 그러면 이미 절반은 해낸 것입니다.",
+    "당신의 시간은 한정되어 있습니다. 다른 사람의 삶을 사느라 낭비하지 마세요.",
+    "시계를 보지 마세요. 시계가 하는 대로 계속 나아가세요.",
+    "미래는 오늘 당신이 무엇을 하느냐에 달려 있습니다.",
+    "멈추지 않는 한, 얼마나 천천히 가는지는 중요하지 않습니다.",
+    "당신이 원하는 모든 것은 두려움의 반대편에 있습니다.",
+    "성공은 끝이 아니며, 실패는 치명적이지 않습니다. 중요한 것은 계속하는 용기입니다.",
+    "고난은 종종 평범한 사람을 비범한 운명으로 이끕니다.",
+    "크게 꿈꾸고, 대담하게 실패하세요.",
+    "목표를 달성해서 얻는 것보다 중요한 것은, 목표를 달성하며 변화하는 당신의 모습입니다.",
+    "미래를 예측하는 가장 좋은 방법은 미래를 만들어가는 것입니다."
 ];
 
 export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -85,6 +86,14 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         try {
             setLoading(true);
+
+            // Fetch Profile
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('nickname')
+                .eq('id', currentSession.user.id)
+                .single();
+
             // Fetch latest active cycle
             const { data: cycles, error: cycleError } = await supabase
                 .from('cycles')
@@ -93,6 +102,11 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 .limit(1);
 
             if (cycleError) throw cycleError;
+
+            let extraState = {};
+            if (profile) {
+                extraState = { profile: { nickname: profile.nickname } };
+            }
 
             if (cycles && cycles.length > 0) {
                 const cycle = cycles[0];
@@ -115,7 +129,7 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         weekNumber: i,
                         startDate: weekStart.toISOString(),
                         endDate: weekEnd.toISOString(),
-                        quote: QUOTES[i - 1] || "Keep going!",
+                        quote: QUOTES[i - 1] || "포기하지 마세요!",
                         actions: (actions || []).filter((a: any) => a.week_number === i).map((a: any) => ({
                             id: a.id,
                             goalId: a.goal_id,
@@ -135,11 +149,12 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         createdAt: g.created_at
                     })),
                     weeks: weeks,
-                    isSetupComplete: true
+                    isSetupComplete: true,
+                    ...extraState
                 });
             } else {
                 // No Data found
-                setState(INITIAL_STATE);
+                setState({ ...INITIAL_STATE, ...extraState });
             }
         } catch (err) {
             console.error("Error fetching data:", err);
@@ -381,6 +396,18 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         await supabase.auth.signOut();
     };
 
+    const updateProfile = async (nickname: string) => {
+        if (!session) return;
+
+        setState(prev => ({ ...prev, profile: { nickname } }));
+
+        await supabase.from('profiles').upsert({
+            id: session.user.id,
+            nickname: nickname,
+            created_at: new Date().toISOString()
+        });
+    };
+
     return (
         <TrackerContext.Provider value={{
             state,
@@ -395,6 +422,7 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
             updateGoal,
             deleteGoal,
             fetchHistory,
+            updateProfile,
             resetData,
             handleLogout
         }}>

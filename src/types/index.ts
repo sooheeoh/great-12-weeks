@@ -26,6 +26,7 @@ export interface TrackerState {
     goals: Goal[];
     weeks: Record<number, WeekData>;
     isSetupComplete: boolean;
+    profile?: { nickname: string };
 }
 
 export interface WeeklyStats {

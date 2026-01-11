@@ -34,8 +34,8 @@ export const LoginView: React.FC = () => {
     return (
         <div className="login-container">
             <div className="login-header">
-                <h1 className="text-gradient" style={{ fontSize: '3rem', marginBottom: '1rem' }}>Great 12 Weeks</h1>
-                <p className="subtitle">Login to sync your goals across devices.</p>
+                <h1 className="text-gradient" style={{ fontSize: '3rem', marginBottom: '1rem' }}>위대한 12주</h1>
+                <p className="subtitle">12주간의 위대한 여정을 시작하세요.</p>
             </div>
 
             <Card className="login-card">
@@ -58,14 +58,14 @@ export const LoginView: React.FC = () => {
                         }}
                     >
                         <FcGoogle size={24} />
-                        <span>Sign in with Google</span>
+                        <span>Google 계정으로 시작하기</span>
                     </Button>
                 </div>
                 {error && <p className="login-error">{error}</p>}
 
                 <div className="login-footer">
                     <p className="footer-text">
-                        By continuing, you verify that you are ready to achieve greatness.
+                        오늘의 시작이 12주 후의 기적을 만듭니다.
                     </p>
                 </div>
             </Card>

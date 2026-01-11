@@ -26,10 +26,10 @@ export const GoalEditor: React.FC = () => {
     return (
         <Card className="goal-editor-card">
             <div className="goal-editor-header">
-                <h3>My 12-Week Goals</h3>
+                <h3>나의 핵심 목표</h3>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <Button variant="ghost" size="sm" onClick={finishCurrentCycle} style={{ color: '#ef4444' }}>
-                        End Cycle
+                        현재 사이클 종료
                     </Button>
                 </div>
             </div>
@@ -43,13 +43,13 @@ export const GoalEditor: React.FC = () => {
                                     className="edit-input"
                                     value={editForm.title}
                                     onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                                    placeholder="Goal Title"
+                                    placeholder="목표 제목"
                                 />
                                 <Input
                                     className="edit-input"
                                     value={editForm.description}
                                     onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                                    placeholder="Description (Optional)"
+                                    placeholder="상세 설명 (선택)"
                                 />
                                 <div className="edit-actions">
                                     <Button size="sm" onClick={handleSave}><Check size={16} /></Button>
