@@ -1,0 +1,207 @@
+.weekly-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.weekly-header {
+    margin-bottom: var(--space-6);
+}
+
+.week-selector {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.week-title {
+    font-size: var(--font-size-2xl);
+    margin: 0;
+    background: linear-gradient(to right, #fff, #cbd5e1);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.week-date-range {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-lg);
+}
+
+.quote-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1));
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.quote-text {
+    font-style: italic;
+    text-align: center;
+    color: var(--color-text-main);
+    font-size: var(--font-size-lg);
+    margin: 0;
+}
+
+.progress-section {
+    margin-bottom: var(--space-8);
+}
+
+.progress-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-2);
+}
+
+.score-badge {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-text-muted);
+}
+
+.score-badge.score-good {
+    color: var(--color-success);
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.progress-hint {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-top: var(--space-2);
+    text-align: right;
+}
+
+/* Actions Board Layout */
+.actions-board {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: var(--space-6);
+}
+
+@media (max-width: 768px) {
+    .actions-board {
+        grid-template-columns: 1fr;
+    }
+}
+
+.actions-header {
+    margin-bottom: var(--space-4);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--space-8);
+    color: var(--color-text-muted);
+    border: 1px dashed var(--glass-border);
+    border-radius: var(--radius-lg);
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    background: rgba(30, 41, 59, 0.3);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-3);
+    transition: all 0.2s;
+}
+
+.action-item:hover {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: var(--glass-border);
+}
+
+.action-item.completed .action-title {
+    text-decoration: line-through;
+    color: var(--color-text-muted);
+}
+
+.action-content {
+    flex: 1;
+}
+
+.action-title {
+    margin: 0;
+    font-weight: 500;
+}
+
+.action-goal-tag {
+    font-size: 0.75rem;
+    color: var(--color-accent-1);
+    background: rgba(99, 102, 241, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.check-btn,
+.delete-btn {
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.check-btn:hover,
+.delete-btn:hover {
+    opacity: 1;
+}
+
+.delete-btn {
+    color: var(--color-text-muted);
+}
+
+.delete-btn:hover {
+    color: var(--color-error);
+}
+
+/* Sidebar Form */
+.glass-select {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text-main);
+    outline: none;
+    margin-bottom: var(--space-4);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--space-1);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+/* Week Nav */
+.week-nav {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-top: var(--space-8);
+    flex-wrap: wrap;
+}
+
+.week-nav-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    transition: all 0.2s;
+}
+
+.week-nav-dot:hover {
+    border-color: var(--color-accent-1);
+    color: var(--color-text-main);
+}
+
+.week-nav-dot.active {
+    background: var(--color-accent-1);
+    color: white;
+    border-color: var(--color-accent-1);
+}
