@@ -2,19 +2,22 @@ import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
+import { FcGoogle } from 'react-icons/fc'; // Google Icon
 import './LoginView.css';
 
 export const LoginView: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleLogin = async (provider: 'google' | 'kakao') => {
+    const handleLogin = async () => {
         try {
             setLoading(true);
             setError(null);
 
+            // Fix: Explicitly use window.location.origin to support both localhost and Vercel
+            // Ensure this URL is added to Supabase -> Authentication -> URL Configuration -> Redirect URLs
             const { error } = await supabase.auth.signInWithOAuth({
-                provider: provider,
+                provider: 'google',
                 options: {
                     redirectTo: window.location.origin
                 }
@@ -38,27 +41,31 @@ export const LoginView: React.FC = () => {
             <Card className="login-card">
                 <div className="login-buttons">
                     <Button
-                        onClick={() => handleLogin('google')}
+                        onClick={handleLogin}
                         disabled={loading}
                         className="btn-google"
-                        style={{ width: '100%', marginBottom: '1rem', background: '#fff', color: '#000' }}
+                        style={{
+                            width: '100%',
+                            marginBottom: '1rem',
+                            background: '#fff',
+                            color: '#1f2937',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.75rem',
+                            fontWeight: 600,
+                            padding: '0.75rem'
+                        }}
                     >
-                        Sign in with Google
-                    </Button>
-                    <Button
-                        onClick={() => handleLogin('kakao')}
-                        disabled={loading}
-                        className="btn-kakao"
-                        style={{ width: '100%', background: '#FEE500', color: '#000', border: 'none' }}
-                    >
-                        Sign in with Kakao
+                        <FcGoogle size={24} />
+                        <span>Sign in with Google</span>
                     </Button>
                 </div>
                 {error && <p className="login-error">{error}</p>}
 
                 <div className="login-footer">
-                    <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '2rem' }}>
-                        Note: You need to set up Supabase Auth providers first.
+                    <p className="footer-text">
+                        By continuing, you verify that you are ready to achieve greatness.
                     </p>
                 </div>
             </Card>
