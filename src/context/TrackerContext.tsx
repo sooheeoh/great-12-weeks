@@ -11,9 +11,14 @@ interface TrackerContextType {
     session: Session | null;
     loading: boolean;
     startNewCycle: (goals: Goal[], startDate: Date) => void;
+    finishCurrentCycle: () => void;
     addAction: (weekNumber: number, goalId: string, title: string) => void;
+    updateAction: (weekNumber: number, actionId: string, title: string) => void;
     toggleAction: (weekNumber: number, actionId: string) => void;
     deleteAction: (weekNumber: number, actionId: string) => void;
+    updateGoal: (goalId: string, title: string, description: string) => void;
+    deleteGoal: (goalId: string) => void;
+    fetchHistory: () => Promise<any[]>;
     resetData: () => void;
     handleLogout: () => void;
 }
@@ -200,6 +205,86 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
+    const finishCurrentCycle = async () => {
+        if (!activeCycleId) return;
+
+        const confirmEnd = window.confirm("Are you sure you want to finish this 12-week cycle? It will be archived.");
+        if (!confirmEnd) return;
+
+        try {
+            const { error } = await supabase.from('cycles')
+                .update({ is_active: false })
+                .eq('id', activeCycleId);
+
+            if (error) throw error;
+
+            // Reset local state
+            setState(INITIAL_STATE);
+            setActiveCycleId(null);
+        } catch (err) {
+            console.error("Error finishing cycle:", err);
+        }
+    };
+
+    const fetchHistory = async () => {
+        if (!session) return [];
+        const { data, error } = await supabase.from('cycles')
+            .select('*, goals(*)')
+            .eq('is_active', false)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error("Error fetching history:", error);
+            return [];
+        }
+        return data;
+    };
+
+    const updateGoal = async (goalId: string, title: string, description: string) => {
+        // Optimistic
+        setState(prev => ({
+            ...prev,
+            goals: prev.goals.map(g => g.id === goalId ? { ...g, title, description } : g)
+        }));
+
+        await supabase.from('goals').update({ title, description }).eq('id', goalId);
+    };
+
+    const deleteGoal = async (goalId: string) => {
+        if (!window.confirm("Delete this goal? Associated actions will also be deleted.")) return;
+
+        // Optimistic
+        setState(prev => ({
+            ...prev,
+            goals: prev.goals.filter(g => g.id !== goalId),
+            // Also remove actions associated? Or just let refetch handle it? 
+            // For optimistic UI, we should verify actions in weeks too
+            weeks: Object.fromEntries(Object.entries(prev.weeks).map(([k, w]) => [
+                k,
+                { ...w, actions: w.actions.filter(a => a.goalId !== goalId) }
+            ]))
+        }));
+
+        await supabase.from('goals').delete().eq('id', goalId);
+    };
+
+    const updateAction = async (weekNumber: number, actionId: string, title: string) => {
+        setState(prev => {
+            const week = prev.weeks[weekNumber];
+            return {
+                ...prev,
+                weeks: {
+                    ...prev.weeks,
+                    [weekNumber]: {
+                        ...week,
+                        actions: week.actions.map(a => a.id === actionId ? { ...a, title } : a)
+                    }
+                }
+            };
+        });
+        await supabase.from('actions').update({ title }).eq('id', actionId);
+    };
+
     const addAction = async (weekNumber: number, goalId: string, title: string) => {
         if (!activeCycleId || !session) return;
 
@@ -261,15 +346,18 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         try {
             const targetAction = state.weeks[weekNumber].actions.find(a => a.id === actionId);
+            // DB update
             const { error } = await supabase.from('actions')
-                .update({ is_completed: !targetAction?.isCompleted }) // note: using inverted logic of *previous* state might be racey, mostly works for solo
+                .update({ is_completed: !targetAction?.isCompleted })
                 .eq('id', actionId);
 
-            if (error) console.error(error); // Revert?
+            if (error) console.error(error);
         } catch (err) { console.error(err); }
     };
 
     const deleteAction = async (weekNumber: number, actionId: string) => {
+        if (!window.confirm("Remove this action?")) return;
+
         setState(prev => {
             const week = prev.weeks[weekNumber];
             return {
@@ -294,7 +382,22 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     return (
-        <TrackerContext.Provider value={{ state, session, loading, startNewCycle, addAction, toggleAction, deleteAction, resetData, handleLogout }}>
+        <TrackerContext.Provider value={{
+            state,
+            session,
+            loading,
+            startNewCycle,
+            finishCurrentCycle,
+            addAction,
+            updateAction,
+            toggleAction,
+            deleteAction,
+            updateGoal,
+            deleteGoal,
+            fetchHistory,
+            resetData,
+            handleLogout
+        }}>
             {children}
         </TrackerContext.Provider>
     );

@@ -1,0 +1,98 @@
+.goal-editor-card {
+    margin-bottom: var(--space-6);
+}
+
+.goal-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.goals-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.goal-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: var(--space-3);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
+}
+
+.goal-item-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.goal-content {
+    flex: 1;
+}
+
+.goal-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0 0 var(--space-1) 0;
+    color: var(--color-text-primary);
+}
+
+.goal-desc {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.goal-actions {
+    display: flex;
+    gap: var(--space-2);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.goal-item-row:hover .goal-actions {
+    opacity: 1;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.icon-btn:hover {
+    color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn.danger:hover {
+    color: var(--color-error);
+}
+
+/* Edit Mode */
+.goal-edit-form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: var(--space-2);
+}
+
+.edit-input input {
+    /* Override input for denser look */
+    padding: 6px 10px;
+}
+
+.edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+}
