@@ -13,6 +13,7 @@ export const WeeklyView: React.FC = () => {
     const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
     const [newActionTitle, setNewActionTitle] = useState('');
     const [selectedGoalId, setSelectedGoalId] = useState<string>('');
+    const [timeLeft, setTimeLeft] = useState<string>('');
 
     // Determine current week based on date
     const today = new Date();
@@ -32,6 +33,33 @@ export const WeeklyView: React.FC = () => {
     const weekEnd = addWeeks(weekStart, 1);
     const isCurrentWeek = isSameWeek(today, weekStart, { weekStartsOn: 1 });
 
+    // Timer Logic
+    React.useEffect(() => {
+        const updateTimer = () => {
+            const now = new Date();
+            // End of week is weekEnd (which is next Monday 00:00, or close to it)
+            // Actually addWeeks(start, 1) gives next Monday same time.
+            const diff = weekEnd.getTime() - now.getTime();
+
+            if (diff <= 0) {
+                setTimeLeft("주간 종료");
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            setTimeLeft(`${days}일 ${hours}시간 ${minutes}분 남음`);
+        };
+
+        const timerId = setInterval(updateTimer, 60000); // Update every minute
+        updateTimer(); // Initial call
+
+        return () => clearInterval(timerId);
+    }, [weekEnd]);
+
+
     // Progress
     const totalActions = weekData?.actions.length || 0;
     const completedActions = weekData?.actions.filter(a => a.isCompleted).length || 0;
@@ -45,18 +73,35 @@ export const WeeklyView: React.FC = () => {
 
     if (!weekData) return <div>Loading...</div>;
 
+    const handlePrevWeek = () => {
+        if (currentWeek > 1) setSelectedWeek(currentWeek - 1);
+    };
+
+    const handleNextWeek = () => {
+        if (currentWeek < 12) setSelectedWeek(currentWeek + 1);
+    };
+
     return (
         <div className="weekly-container">
-            <div className="week-nav">
-                {Array.from({ length: 12 }, (_, i) => i + 1).map(num => (
-                    <button
-                        key={num}
-                        className={classNames('week-dot', { active: num === currentWeek })}
-                        onClick={() => setSelectedWeek(num)}
-                    >
-                        {num}
-                    </button>
-                ))}
+            <div className="week-nav-controls">
+                <Button variant="ghost" size="sm" onClick={handlePrevWeek} disabled={currentWeek === 1}>
+                    &lt; 이전 주
+                </Button>
+                <div className="week-nav">
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(num => (
+                        <button
+                            key={num}
+                            className={classNames('week-dot', { active: num === currentWeek })}
+                            onClick={() => setSelectedWeek(num)}
+                            title={`${num}주 차`}
+                        >
+                            {num}
+                        </button>
+                    ))}
+                </div>
+                <Button variant="ghost" size="sm" onClick={handleNextWeek} disabled={currentWeek === 12}>
+                    다음 주 &gt;
+                </Button>
             </div>
 
             <Card className="weekly-card">
@@ -67,7 +112,10 @@ export const WeeklyView: React.FC = () => {
                             {format(weekStart, 'M월 d일')} - {format(weekEnd, 'M월 d일')}
                         </span>
                     </div>
-                    {isCurrentWeek && <span className="current-badge">이번 주</span>}
+                    <div style={{ textAlign: 'right' }}>
+                        {isCurrentWeek && <span className="current-badge">이번 주</span>}
+                        {isCurrentWeek && <div className="week-timer">{timeLeft}</div>}
+                    </div>
                 </div>
 
                 <div className="quote-section">
@@ -95,7 +143,7 @@ export const WeeklyView: React.FC = () => {
                         </select>
                         <div className="input-group">
                             <Input
-                                placeholder="이번 주에 할 일을 입력하세요..."
+                                placeholder="할 일을 입력하세요..."
                                 value={newActionTitle}
                                 onChange={(e) => setNewActionTitle(e.target.value)}
                             />
