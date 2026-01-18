@@ -3,6 +3,7 @@ import type { Action, Goal, TrackerState, WeekData } from '../types';
 import { supabase } from '../lib/supabase';
 import { addWeeks, startOfWeek } from 'date-fns';
 import type { Session } from '@supabase/supabase-js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 
 
@@ -20,6 +21,7 @@ interface TrackerContextType {
     deleteGoal: (goalId: string) => void;
     updateProfile: (nickname: string) => Promise<void>;
     saveReview: (weekNumber: number, content: string[]) => Promise<void>;
+    getAiFeedback: (weekNumber: number) => Promise<void>;
     fetchHistory: () => Promise<any[]>;
     resetData: () => void;
     handleLogout: () => void;
@@ -138,6 +140,7 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         endDate: weekEnd.toISOString(),
                         quote: QUOTES[i - 1] || "포기하지 마세요!",
                         review: reviewData?.content ? JSON.parse(reviewData.content) : [],
+                        aiFeedback: reviewData?.ai_feedback || '',
                         actions: (actions || []).filter((a: any) => a.week_number === i).map((a: any) => ({
                             id: a.id,
                             goalId: a.goal_id,
@@ -212,7 +215,8 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     endDate: weekEnd.toISOString(),
                     quote: QUOTES[i - 1] || "",
                     actions: [],
-                    review: []
+                    review: [],
+                    aiFeedback: ''
                 };
             }
 
@@ -441,6 +445,72 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }, { onConflict: 'cycle_id, week_number' });
     };
 
+    const getAiFeedback = async (weekNumber: number) => {
+        if (!activeCycleId || !session) return;
+
+        // Check for API Key
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        if (!apiKey) {
+            alert("Gemini API Key가 설정되지 않았습니다.");
+            return;
+        }
+
+        const weekData = state.weeks[weekNumber];
+        if (!weekData) return;
+
+        try {
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+            const completedActions = weekData.actions.filter(a => a.isCompleted).length;
+            const totalActions = weekData.actions.length;
+            const reviews = weekData.review || [];
+            const goals = state.goals.map(g => g.title).join(", ");
+
+            const prompt = `
+                나는 '위대한 12주'라는 목표 달성 프로그램을 진행 중이야.
+                
+                나의 핵심 목표들: ${goals}
+                
+                [${weekNumber}주 차 활동 요약]
+                - 완료한 행동: ${totalActions}개 중 ${completedActions}개 성공
+                - 나의 회고: ${reviews.join(" ")}
+                
+                위 내용을 바탕으로 이번 주를 격려하고, 다음 주를 위해 힘이 되는 응원의 메시지를 한 문단으로 짧게(150자 이내) 작성해줘. 
+                따뜻하고 동기부여가 되는 존댓말(해요체)로 부탁해.
+            `;
+
+            const result = await model.generateContent(prompt);
+            const response = result.response;
+            const text = response.text();
+
+            // Save to State
+            setState(prev => {
+                const week = prev.weeks[weekNumber];
+                return {
+                    ...prev,
+                    weeks: {
+                        ...prev.weeks,
+                        [weekNumber]: { ...week, aiFeedback: text }
+                    }
+                };
+            });
+
+            // Save to DB
+            await supabase.from('weekly_reviews').upsert({
+                cycle_id: activeCycleId,
+                user_id: session.user.id,
+                week_number: weekNumber,
+                ai_feedback: text,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'cycle_id, week_number' });
+
+        } catch (error) {
+            console.error("AI Feedback Error:", error);
+            alert("AI 응원 메시지를 가져오는 데 실패했습니다.");
+        }
+    };
+
     return (
         <TrackerContext.Provider value={{
             state,
@@ -457,6 +527,7 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
             fetchHistory,
             updateProfile,
             saveReview,
+            getAiFeedback,
             resetData,
             handleLogout
         }}>

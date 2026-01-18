@@ -9,7 +9,7 @@ import classNames from 'classnames';
 import './WeeklyView.css';
 
 export const WeeklyView: React.FC = () => {
-    const { state, addAction, toggleAction, deleteAction, updateAction, saveReview } = useTracker();
+    const { state, addAction, toggleAction, deleteAction, updateAction, saveReview, getAiFeedback } = useTracker();
     const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
     const [newActionTitle, setNewActionTitle] = useState('');
     const [selectedGoalId, setSelectedGoalId] = useState<string>('');
@@ -261,6 +261,25 @@ export const WeeklyView: React.FC = () => {
                     <p className="hint-text" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', textAlign: 'right' }}>
                         * 솔직한 회고가 성장의 밑거름이 됩니다.
                     </p>
+                </div>
+
+                <div className="ai-feedback-section" style={{ marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 className="text-gradient">Gemini 코치</h3>
+                        {!weekData.aiFeedback && (
+                            <Button size="sm" onClick={() => getAiFeedback(currentWeek)} disabled={reviews.length === 0}>
+                                ✨ 응원 메시지 받기
+                            </Button>
+                        )}
+                    </div>
+
+                    {weekData.aiFeedback && (
+                        <div className="ai-message glass-panel" style={{ padding: '1.5rem', borderRadius: 'var(--radius-md)', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)' }}>
+                            <p style={{ lineHeight: '1.6', fontSize: '1.05rem', whiteSpace: 'pre-wrap' }}>
+                                {weekData.aiFeedback}
+                            </p>
+                        </div>
+                    )}
                 </div>
             </Card>
         </div>
