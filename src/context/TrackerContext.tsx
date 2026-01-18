@@ -19,6 +19,7 @@ interface TrackerContextType {
     updateGoal: (goalId: string, title: string, description: string) => void;
     deleteGoal: (goalId: string) => void;
     updateProfile: (nickname: string) => Promise<void>;
+    saveReview: (weekNumber: number, content: string) => Promise<void>;
     fetchHistory: () => Promise<any[]>;
     resetData: () => void;
     handleLogout: () => void;
@@ -118,6 +119,9 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 // Fetch Actions
                 const { data: actions } = await supabase.from('actions').select('*').eq('cycle_id', cycle.id);
 
+                // Fetch Reviews
+                const { data: reviews } = await supabase.from('weekly_reviews').select('*').eq('cycle_id', cycle.id);
+
                 // Reconstruct State
                 // Calculate weeks structure
                 const start = new Date(cycle.start_date);
@@ -125,11 +129,15 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 for (let i = 1; i <= 12; i++) {
                     const weekStart = addWeeks(start, i - 1);
                     const weekEnd = addWeeks(weekStart, 1);
+
+                    const reviewData = reviews?.find((r: any) => r.week_number === i);
+
                     weeks[i] = {
                         weekNumber: i,
                         startDate: weekStart.toISOString(),
                         endDate: weekEnd.toISOString(),
                         quote: QUOTES[i - 1] || "포기하지 마세요!",
+                        review: reviewData ? reviewData.content : '',
                         actions: (actions || []).filter((a: any) => a.week_number === i).map((a: any) => ({
                             id: a.id,
                             goalId: a.goal_id,
@@ -408,6 +416,30 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
     };
 
+    const saveReview = async (weekNumber: number, content: string) => {
+        if (!activeCycleId || !session) return;
+
+        // Optimistic update
+        setState(prev => {
+            const week = prev.weeks[weekNumber];
+            return {
+                ...prev,
+                weeks: {
+                    ...prev.weeks,
+                    [weekNumber]: { ...week, review: content }
+                }
+            };
+        });
+
+        await supabase.from('weekly_reviews').upsert({
+            cycle_id: activeCycleId,
+            user_id: session.user.id,
+            week_number: weekNumber,
+            content: content,
+            updated_at: new Date().toISOString()
+        }, { onConflict: 'cycle_id, week_number' });
+    };
+
     return (
         <TrackerContext.Provider value={{
             state,
@@ -423,6 +455,7 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
             deleteGoal,
             fetchHistory,
             updateProfile,
+            saveReview,
             resetData,
             handleLogout
         }}>

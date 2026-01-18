@@ -19,6 +19,7 @@ export interface WeekData {
     endDate: string; // ISO Date string of the Sunday of that week
     quote: string;
     actions: Action[];
+    review?: string;
 }
 
 export interface TrackerState {

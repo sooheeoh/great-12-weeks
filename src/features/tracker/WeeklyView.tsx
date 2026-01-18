@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTracker } from '../../context/TrackerContext';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
@@ -9,11 +9,12 @@ import classNames from 'classnames';
 import './WeeklyView.css';
 
 export const WeeklyView: React.FC = () => {
-    const { state, addAction, toggleAction, deleteAction, updateAction } = useTracker();
+    const { state, addAction, toggleAction, deleteAction, updateAction, saveReview } = useTracker();
     const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
     const [newActionTitle, setNewActionTitle] = useState('');
     const [selectedGoalId, setSelectedGoalId] = useState<string>('');
     const [timeLeft, setTimeLeft] = useState<string>('');
+    const [reviewText, setReviewText] = useState('');
 
     // Determine current week based on date
     const today = new Date();
@@ -32,6 +33,12 @@ export const WeeklyView: React.FC = () => {
     const weekStart = addWeeks(startDate, currentWeek - 1);
     const weekEnd = addWeeks(weekStart, 1);
     const isCurrentWeek = isSameWeek(today, weekStart, { weekStartsOn: 1 });
+
+    useEffect(() => {
+        if (weekData) {
+            setReviewText(weekData.review || '');
+        }
+    }, [weekData]);
 
     // Timer Logic
     React.useEffect(() => {
@@ -194,6 +201,31 @@ export const WeeklyView: React.FC = () => {
                             ))
                         )}
                     </div>
+                </div>
+
+                <div className="review-section" style={{ marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+                    <h3>주간 회고</h3>
+                    <textarea
+                        className="review-textarea"
+                        placeholder="한 주간 노력해 온 나에게 한 마디, 다음 주를 위한 각오도 한 마디"
+                        value={reviewText}
+                        onChange={(e) => setReviewText(e.target.value)}
+                        onBlur={() => saveReview(currentWeek, reviewText)}
+                        rows={4}
+                        style={{
+                            width: '100%',
+                            resize: 'vertical',
+                            padding: '1rem',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--glass-border)',
+                            background: 'rgba(0,0,0,0.2)',
+                            color: 'var(--color-text-main)',
+                            lineHeight: '1.5',
+                        }}
+                    />
+                    <p className="hint-text" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', textAlign: 'right' }}>
+                        * 작성 내용은 자동으로 저장됩니다.
+                    </p>
                 </div>
             </Card>
         </div>
