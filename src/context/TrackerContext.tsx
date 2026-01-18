@@ -19,7 +19,7 @@ interface TrackerContextType {
     updateGoal: (goalId: string, title: string, description: string) => void;
     deleteGoal: (goalId: string) => void;
     updateProfile: (nickname: string) => Promise<void>;
-    saveReview: (weekNumber: number, content: string) => Promise<void>;
+    saveReview: (weekNumber: number, content: string[]) => Promise<void>;
     fetchHistory: () => Promise<any[]>;
     resetData: () => void;
     handleLogout: () => void;
@@ -137,7 +137,7 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         startDate: weekStart.toISOString(),
                         endDate: weekEnd.toISOString(),
                         quote: QUOTES[i - 1] || "포기하지 마세요!",
-                        review: reviewData ? reviewData.content : '',
+                        review: reviewData?.content ? JSON.parse(reviewData.content) : [],
                         actions: (actions || []).filter((a: any) => a.week_number === i).map((a: any) => ({
                             id: a.id,
                             goalId: a.goal_id,
@@ -211,7 +211,8 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     startDate: weekStart.toISOString(),
                     endDate: weekEnd.toISOString(),
                     quote: QUOTES[i - 1] || "",
-                    actions: []
+                    actions: [],
+                    review: []
                 };
             }
 
@@ -416,7 +417,7 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
     };
 
-    const saveReview = async (weekNumber: number, content: string) => {
+    const saveReview = async (weekNumber: number, content: string[]) => {
         if (!activeCycleId || !session) return;
 
         // Optimistic update
@@ -435,7 +436,7 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
             cycle_id: activeCycleId,
             user_id: session.user.id,
             week_number: weekNumber,
-            content: content,
+            content: JSON.stringify(content),
             updated_at: new Date().toISOString()
         }, { onConflict: 'cycle_id, week_number' });
     };

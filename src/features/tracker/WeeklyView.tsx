@@ -14,7 +14,8 @@ export const WeeklyView: React.FC = () => {
     const [newActionTitle, setNewActionTitle] = useState('');
     const [selectedGoalId, setSelectedGoalId] = useState<string>('');
     const [timeLeft, setTimeLeft] = useState<string>('');
-    const [reviewText, setReviewText] = useState('');
+    const [reviews, setReviews] = useState<string[]>([]);
+    const [reviewInput, setReviewInput] = useState('');
 
     // Determine current week based on date
     const today = new Date();
@@ -36,9 +37,23 @@ export const WeeklyView: React.FC = () => {
 
     useEffect(() => {
         if (weekData) {
-            setReviewText(weekData.review || '');
+            setReviews(weekData.review || []);
         }
     }, [weekData]);
+
+    const handleAddReview = async () => {
+        if (!reviewInput.trim() || reviews.length >= 3) return;
+        const newReviews = [...reviews, reviewInput.trim()];
+        setReviews(newReviews);
+        setReviewInput('');
+        await saveReview(currentWeek, newReviews);
+    };
+
+    const handleDeleteReview = async (index: number) => {
+        const newReviews = reviews.filter((_, i) => i !== index);
+        setReviews(newReviews);
+        await saveReview(currentWeek, newReviews);
+    };
 
     // Timer Logic
     React.useEffect(() => {
@@ -204,27 +219,47 @@ export const WeeklyView: React.FC = () => {
                 </div>
 
                 <div className="review-section" style={{ marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
-                    <h3>주간 회고</h3>
-                    <textarea
-                        className="review-textarea"
-                        placeholder="한 주간 노력해 온 나에게 한 마디, 다음 주를 위한 각오도 한 마디"
-                        value={reviewText}
-                        onChange={(e) => setReviewText(e.target.value)}
-                        onBlur={() => saveReview(currentWeek, reviewText)}
-                        rows={4}
-                        style={{
-                            width: '100%',
-                            resize: 'vertical',
-                            padding: '1rem',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px solid var(--glass-border)',
-                            background: 'rgba(0,0,0,0.2)',
-                            color: 'var(--color-text-main)',
-                            lineHeight: '1.5',
-                        }}
-                    />
+                    <h3>주간 회고 (최대 3개)</h3>
+
+                    <div className="review-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                        {reviews.map((rev, idx) => (
+                            <div key={idx} className="review-item" style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                padding: '0.75rem',
+                                borderRadius: 'var(--radius-sm)',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                            }}>
+                                <span>{rev}</span>
+                                <button
+                                    onClick={() => handleDeleteReview(idx)}
+                                    style={{ color: 'var(--color-error)', opacity: 0.7 }}
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {reviews.length < 3 && (
+                        <div className="review-input-group" style={{ display: 'flex', gap: '0.5rem' }}>
+                            <Input
+                                placeholder="이번 주를 돌아보며 한 마디..."
+                                value={reviewInput}
+                                onChange={(e) => setReviewInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleAddReview();
+                                }}
+                            />
+                            <Button onClick={handleAddReview} disabled={!reviewInput.trim()}>
+                                확인
+                            </Button>
+                        </div>
+                    )}
+
                     <p className="hint-text" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', textAlign: 'right' }}>
-                        * 작성 내용은 자동으로 저장됩니다.
+                        * 솔직한 회고가 성장의 밑거름이 됩니다.
                     </p>
                 </div>
             </Card>
