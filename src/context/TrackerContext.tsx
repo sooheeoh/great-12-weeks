@@ -3,7 +3,7 @@ import type { Action, Goal, TrackerState, WeekData } from '../types';
 import { supabase } from '../lib/supabase';
 import { addWeeks, startOfWeek } from 'date-fns';
 import type { Session } from '@supabase/supabase-js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+
 
 
 
@@ -448,20 +448,10 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const getAiFeedback = async (weekNumber: number) => {
         if (!activeCycleId || !session) return;
 
-        // Check for API Key
-        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-        if (!apiKey) {
-            alert("Gemini API Key가 설정되지 않았습니다.");
-            return;
-        }
-
         const weekData = state.weeks[weekNumber];
         if (!weekData) return;
 
         try {
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
             const completedActions = weekData.actions.filter(a => a.isCompleted).length;
             const totalActions = weekData.actions.length;
             const reviews = weekData.review || [];
@@ -480,9 +470,22 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 따뜻하고 동기부여가 되는 존댓말(해요체)로 부탁해.
             `;
 
-            const result = await model.generateContent(prompt);
-            const response = result.response;
-            const text = response.text();
+            // Call Serverless Function
+            const response = await fetch('/api/gemini', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ prompt }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to fetch AI feedback');
+            }
+
+            const data = await response.json();
+            const text = data.text;
 
             // Save to State
             setState(prev => {
@@ -507,7 +510,7 @@ export const TrackerProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         } catch (error) {
             console.error("AI Feedback Error:", error);
-            alert("AI 응원 메시지를 가져오는 데 실패했습니다.");
+            alert("AI 응원 메시지를 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요.");
         }
     };
 
